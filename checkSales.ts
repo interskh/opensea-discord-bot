@@ -18,69 +18,45 @@ const  discordSetup = async (channel: string): Promise<TextChannel> => {
   })
 }
 
-const buildFloorMessage = (slug: string, resp: any) => (
-  new Discord.MessageEmbed()
-    .setColor('#0099ff')
-    .setTitle(slug)
-    //.setURL("")
-    //.setAuthor('kbot', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png', 'https://github.com/sbauch/opensea-discord-bot')
-    //.setThumbnail("")
-    .addFields(
-        { name: 'Floor Price', value: resp.stats.floor_price },
-        { name: 'Timestamp', value: new Date() },
-    )
-    //.setImage(sale.asset.image_url)
-    //.setTimestamp(Date.parse(`${sale?.created_date}Z`))
-    //.setFooter('Sold on OpenSea', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
-);
+const buildMessage = (resps: any) => {
+    var msg = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle("NFT Prices");
 
-//const buildMessage = (sale: any) => (
-//  new Discord.MessageEmbed()
-//    .setColor('#0099ff')
-//    .setTitle(sale.asset.name + ' sold!')
-//    .setURL(sale.asset.permalink)
-//    .setAuthor('OpenSea Bot', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png', 'https://github.com/sbauch/opensea-discord-bot')
-//    .setThumbnail(sale.asset.collection.image_url)
-//    .addFields(
-//        { name: 'Name', value: sale.asset.name },
-//        { name: 'Amount', value: `${ethers.utils.formatEther(sale.total_price || '0')}${ethers.constants.EtherSymbol}`},
-//        { name: 'Buyer', value: sale?.winner_account?.address, },
-//        { name: 'Seller', value: sale?.seller?.address,  },
-//    )
-//  .setImage(sale.asset.image_url)
-//    .setTimestamp(Date.parse(`${sale?.created_date}Z`))
-//    .setFooter('Sold on OpenSea', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
-//);
+    for (const resp of resps) {
+        var slug = resp[0];
+        var data = JSON.parse(resp[1]);
+        try {
+            msg.addFields(
+                {name: slug + ' floor', value: data.stats.floor_price + ethers.constants.EtherSymbol, inline: true},
+                {name: slug + ' sales', value: data.stats.one_day_sales, inline: true},
+                {name: slug + ' 1d price', value: data.stats.one_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
+                //{name: slug + ' 7d price', value: data.stats.seven_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
+            )
+        } catch (e) {}
+    }
+    msg.addFields(
+        { name: 'Timestamp', value: new Date() },
+    );
+    return msg;
+};
 
 async function floorPrice() {
-    const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 3600;
-    const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
-
     let openSeaFetch = {}
     if (process.env.OPENSEA_TOKEN) {
         openSeaFetch['headers'] = {'X-API-KEY': process.env.OPENSEA_TOKEN}
     }
 
-    return await Promise.all(
+    return Promise.all(
         process.env.COLLECTION_SLUG.split(';').map(async (slug: string) => {
             let responseText = "";
             try {
                 const openSeaResponseObj = await fetch(
                   `https://api.opensea.io/api/v1/collection/${slug}/stats`, openSeaFetch
                 );
-
                 let responseText = await openSeaResponseObj.text();
-
-                const openSeaResponse = JSON.parse(responseText);
-                console.log(openSeaResponse);
-
-                const message = buildFloorMessage(slug, openSeaResponse);
-                console.log(message);
-                return await Promise.all(
-                  process.env.DISCORD_CHANNEL_ID.split(';').map(async (channel: string) => {
-                    return await (await discordSetup(channel)).send(message)
-                  })
-                );
+                //return {"slug": slug, "data": JSON.parse(responseText)};
+                return [slug, responseText];
             } catch (e) {
                 const payload = responseText || "";
                 if (payload.includes("cloudflare") && payload.includes("1020")) {
@@ -89,66 +65,16 @@ async function floorPrice() {
             throw e;
           }
         })
-    );
+    ).then(responses => {
+        console.log(responses);
+        const message = buildMessage(responses);
+        return Promise.all(
+          process.env.DISCORD_CHANNEL_ID.split(';').map(async (channel: string) => {
+            return await (await discordSetup(channel)).send(message)
+          })
+        );
+    })
 }
-
-//async function main() {
-//  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 3_600;
-//  const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
-
-//  const params = new URLSearchParams({
-//    offset: '0',
-//    event_type: 'successful',
-//    only_opensea: 'false',
-//    occurred_after: hoursAgo.toString(), 
-//    collection_slug: process.env.COLLECTION_SLUG!,
-//  })
-
-//  if (process.env.CONTRACT_ADDRESS !== OPENSEA_SHARED_STOREFRONT_ADDRESS) {
-//    params.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
-//  }
-
-//  let openSeaFetch = {}
-//  if (process.env.OPENSEA_TOKEN) {
-//    openSeaFetch['headers'] = {'X-API-KEY': process.env.OPENSEA_TOKEN}
-//  }
-
-//  let responseText = "";
-
-//  try {
-//    const openSeaResponseObj = await fetch(
-//      "https://api.opensea.io/api/v1/events?" + params, openSeaFetch
-//    );
-
-//    responseText = await openSeaResponseObj.text();
-
-//    const openSeaResponse = JSON.parse(responseText);
-
-//    return await Promise.all(
-//      openSeaResponse?.asset_events?.reverse().map(async (sale: any) => {
-
-//        if (sale.asset.name == null) sale.asset.name = 'Unnamed NFT';
-
-//        const message = buildMessage(sale);
-
-//        return await Promise.all(
-//          process.env.DISCORD_CHANNEL_ID.split(';').map(async (channel: string) => {
-//            return await (await discordSetup(channel)).send(message)
-//          })
-//        );
-//      })
-//    );
-//  } catch (e) {
-
-//    const payload = responseText || "";
-
-//    if (payload.includes("cloudflare") && payload.includes("1020")) {
-//      throw new Error("You are being rate-limited by OpenSea. Please retrieve an OpenSea API token here: https://docs.opensea.io/reference/request-an-api-key")
-//    }
-
-//    throw e;
-//  }
-//}
 
 floorPrice()
   .then((res) => {
