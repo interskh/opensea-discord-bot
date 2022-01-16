@@ -3,7 +3,11 @@ import Discord, { TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
 import { ethers } from "ethers";
 
+import { OpenSeaClient } from './opensea';
+
 const OPENSEA_SHARED_STOREFRONT_ADDRESS = '0x495f947276749Ce646f68AC8c248420045cb7b5e';
+
+const openseaClient = new OpenSeaClient();
 
 const discordBot = new Discord.Client();
 const  discordSetup = async (channel: string): Promise<TextChannel> => {
@@ -25,13 +29,13 @@ const buildMessage = (resps: any) => {
 
     for (const resp of resps) {
         var slug = resp[0];
-        var data = JSON.parse(resp[1]);
+        var stats = resp[1];
         try {
             msg.addFields(
-                {name: slug + ' floor', value: data.stats.floor_price + ethers.constants.EtherSymbol, inline: true},
-                {name: slug + ' sales', value: data.stats.one_day_sales, inline: true},
-                {name: slug + ' 1d price', value: data.stats.one_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
-                //{name: slug + ' 7d price', value: data.stats.seven_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
+                {name: slug + ' floor', value: stats.floor_price + ethers.constants.EtherSymbol, inline: true},
+                {name: slug + ' sales', value: stats.one_day_sales, inline: true},
+                {name: slug + ' 1d price', value: stats.one_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
+                //{name: slug + ' 7d price', value: stats.seven_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
             )
         } catch (e) {}
     }
@@ -49,21 +53,7 @@ async function floorPrice() {
 
     return Promise.all(
         process.env.COLLECTION_SLUG.split(';').map(async (slug: string) => {
-            let responseText = "";
-            try {
-                const openSeaResponseObj = await fetch(
-                  `https://api.opensea.io/api/v1/collection/${slug}/stats`, openSeaFetch
-                );
-                let responseText = await openSeaResponseObj.text();
-                //return {"slug": slug, "data": JSON.parse(responseText)};
-                return [slug, responseText];
-            } catch (e) {
-                const payload = responseText || "";
-                if (payload.includes("cloudflare") && payload.includes("1020")) {
-                  throw new Error("You are being rate-limited by OpenSea. Please retrieve an OpenSea API token here: https://docs.opensea.io/reference/request-an-api-key")
-                }
-            throw e;
-          }
+            return [slug, await openseaClient.stats(slug)];
         })
     ).then(responses => {
         console.log(responses);
