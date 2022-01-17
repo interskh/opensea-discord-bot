@@ -32,16 +32,17 @@ const buildMessage = (resps: any) => {
         var stats = resp[1];
         try {
             msg.addFields(
-                {name: slug + ' floor', value: stats.floor_price + ethers.constants.EtherSymbol, inline: true},
-                {name: slug + ' sales', value: stats.one_day_sales, inline: true},
-                {name: slug + ' 1d price', value: stats.one_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
+                {name: slug, value: `${stats.floor_price}${ethers.constants.EtherSymbol} | ${stats.one_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.seven_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.thirty_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.one_day_sales} | ${(stats.one_day_change<0?"":"+")}${(stats.one_day_change*100).toFixed(2)}%`},
+                //{name: slug + ' floor', value: stats.floor_price + ethers.constants.EtherSymbol, inline: true},
+                //{name: slug + ' sales', value: stats.one_day_sales, inline: true},
+                //{name: slug + ' 1d price', value: stats.one_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
                 //{name: slug + ' 7d price', value: stats.seven_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
             )
         } catch (e) {}
     }
-    msg.addFields(
-        { name: 'Timestamp', value: new Date() },
-    );
+    //msg.addFields(
+    //    { name: 'Timestamp', value: new Date() },
+    //);
     return msg;
 };
 
