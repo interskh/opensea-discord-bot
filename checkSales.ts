@@ -31,8 +31,9 @@ const buildMessage = (resps: any) => {
         var slug = resp[0];
         var stats = resp[1];
         try {
+            var price_change_ratio = stats.one_day_average_price / stats.seven_day_average_price - 1;
             msg.addFields(
-                {name: slug, value: `${stats.floor_price}${ethers.constants.EtherSymbol} | ${stats.one_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.seven_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.thirty_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.one_day_sales} | ${(stats.one_day_change<0?"":"+")}${(stats.one_day_change*100).toFixed(2)}%`},
+                {name: slug, value: `${stats.floor_price}${ethers.constants.EtherSymbol} | ${stats.one_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.seven_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.thirty_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${(price_change_ratio<0?"":"+")}${(price_change_ratio*100).toFixed(2)}% | ${stats.one_day_sales} | ${(stats.one_day_change<0?"":"+")}${(stats.one_day_change*100).toFixed(2)}%`},
                 //{name: slug + ' floor', value: stats.floor_price + ethers.constants.EtherSymbol, inline: true},
                 //{name: slug + ' sales', value: stats.one_day_sales, inline: true},
                 //{name: slug + ' 1d price', value: stats.one_day_average_price.toFixed(3) + ethers.constants.EtherSymbol, inline: true},
