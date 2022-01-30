@@ -38,9 +38,9 @@ const buildMessage = (data: any) => {
     var msg = new Discord.MessageEmbed()
         .setColor('#0099ff')
         .setURL(data.asset.permalink)
-        .setTitle(data.asset.name)
+        .setTitle(`${data.asset.name} - ${(data.starting_price / 1000000000000000000).toFixed(3)} ${data.payment_token.symbol}`)
         .setThumbnail(data.asset.image_thumbnail_url)
-        .setDescription(`${(data.starting_price / 1000000000000000000).toFixed(3)} ${data.payment_token.symbol}  by ${data.seller.user?.username}`)
+        .setDescription(`by ${data.seller.user?.username}`)
         .setFooter(new Date(`${data.created_date}Z`).toString())
         ;
     console.log(msg);
