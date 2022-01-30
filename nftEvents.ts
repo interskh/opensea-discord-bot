@@ -96,7 +96,7 @@ async function getEvents() {
                         }
                         const message = buildMessage(d);
                         return Promise.all(
-                            process.env.DISCORD_CHANNEL_ID.split(';').map(async (channel: string) => {
+                            process.env.LIST_DISCORD_CHANNEL_ID.split(';').map(async (channel: string) => {
                                 return await (await discordSetup(channel)).send(message)
                             })
                         );
