@@ -35,13 +35,14 @@ const  discordSetup = async (channel: string): Promise<TextChannel> => {
 }
 
 const buildMessage = (data: any) => {
-    var msg = new Discord.MessageEmbed()
+    let timeToSell = (new Date(`${data.created_date}Z`).getTime() - new Date(`${data.listing_time}Z`).getTime())/1000/60;
+    let msg = new Discord.MessageEmbed()
         .setColor('#0099ff')
         .setURL(data.asset.permalink)
         .setTitle(data.asset.name)
         .setThumbnail(data.asset.image_thumbnail_url)
-        .setDescription(`${(data.total_price / 1000000000000000000).toFixed(3)} ${data.payment_token.symbol}  from ${data.seller.user?.username} to ${data.asset.owner?.user?.username}`)
-        .setFooter(`listed at ${new Date(`${data.listing_time}Z`).toString()},\nsold at ${new Date(`${data.created_date}Z`).toString()}`)
+        .setDescription(`${(data.total_price / 1000000000000000000).toFixed(3)} ${data.payment_token.symbol}\nfrom ${data.seller.user?.username} to ${data.asset.owner?.user?.username} \n(list to sold ${timeToSell.toFixed(3)} mins)`)
+        .setFooter(`${new Date(`${data.created_date}Z`).toString()}`)
         ;
     console.log(msg);
     return msg;
