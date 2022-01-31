@@ -3,9 +3,11 @@ import fetch from 'node-fetch';
 export class OpenSeaClient {
 
     public attemptsBeforeSuccess: Map<string, number>;
+    private _timeout: number;
 
     constructor () {
         this.attemptsBeforeSuccess = new Map();
+        this._timeout = 2000;
     }
 
     async stats (slug: string): Promise<number> {
@@ -33,11 +35,13 @@ export class OpenSeaClient {
                     console.log(`Failed to fetch ${slug} after 5 attempts`);
                     return {};
                 }
+                this._timeout += 1000;
                 this.attemptsBeforeSuccess.set(slug, attemptCount + 1);
             } else {
+                this._timeout += 1000;
                 this.attemptsBeforeSuccess.set(slug, 1);
             }
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, this._timeout));
             return this.stats(slug);
         });
     }
@@ -76,11 +80,13 @@ export class OpenSeaClient {
                     console.log(`Failed to fetch ${slug} after 5 attempts`);
                     return {};
                 }
+                this._timeout += 1000;
                 this.attemptsBeforeSuccess.set(slug, attemptCount + 1);
             } else {
+                this._timeout += 1000;
                 this.attemptsBeforeSuccess.set(slug, 1);
             }
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, this._timeout));
             return this.events(slug, type, since);
         });
     }
