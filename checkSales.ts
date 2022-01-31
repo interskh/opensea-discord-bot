@@ -24,8 +24,8 @@ const  discordSetup = async (channel: string): Promise<TextChannel> => {
 
 const buildMessage = (resps: any) => {
     var msg = new Discord.MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle("NFT Prices");
+        .setColor('#0099ff');
+    let title = "NFT - ";
 
     for (const resp of resps) {
         var slug = resp[0];
@@ -35,8 +35,10 @@ const buildMessage = (resps: any) => {
             msg.addFields(
                 {name: slug, value: `${stats.floor_price}${ethers.constants.EtherSymbol} | ${stats.one_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.seven_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${stats.thirty_day_average_price.toFixed(3)}${ethers.constants.EtherSymbol} | ${(price_change_ratio<0?"":"+")}${(price_change_ratio*100).toFixed(2)}% | ${stats.one_day_sales} | ${(stats.one_day_change<0?"":"+")}${(stats.one_day_change*100).toFixed(2)}%`},
             )
+            title += `${slug.substr(0,2).toUpperCase()} ${stats.floor_price}; `;
         } catch (e) {}
     }
+    msg.setTitle(title);
     //msg.addFields(
     //    { name: 'Timestamp', value: new Date() },
     //);
