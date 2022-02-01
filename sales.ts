@@ -99,7 +99,8 @@ async function getEvents() {
                 const c = await discordSetup(channel);
                 return Promise.all(
                     messages.map(async (message) => {
-                        return await c.send(message)
+                        if (message)
+                            return await c.send(message)
                     })
                 );
             })
