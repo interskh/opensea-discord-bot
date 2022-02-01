@@ -5,8 +5,6 @@ import { ethers } from "ethers";
 
 import { OpenSeaClient } from './opensea';
 
-const OPENSEA_SHARED_STOREFRONT_ADDRESS = '0x495f947276749Ce646f68AC8c248420045cb7b5e';
-
 const openseaClient = new OpenSeaClient();
 
 const discordBot = new Discord.Client();
@@ -16,6 +14,7 @@ const  discordSetup = async (channel: string): Promise<TextChannel> => {
     if (!process.env['DISCORD_BOT_TOKEN']) reject('DISCORD_BOT_TOKEN not set')
     discordBot.login(process.env.DISCORD_BOT_TOKEN);
     discordBot.on('ready', async () => {
+      console.log("discord set up");
       const channel = await discordBot.channels.fetch(channelID!);
       resolve(channel as TextChannel);
     });

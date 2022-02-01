@@ -95,11 +95,7 @@ async function getEvents() {
                             return;
                         }
                         const message = buildMessage(d);
-                        return Promise.all(
-                            process.env.LIST_DISCORD_CHANNEL_ID.split(';').map(async (channel: string) => {
-                                return await (await discordSetup(channel)).send(message)
-                            })
-                        );
+                        return message;
                     } catch (e) {
                         console.error(e);
                         console.error(d);
@@ -107,7 +103,14 @@ async function getEvents() {
                 })
             );
         })
-    );
+    ).then((messages) => {
+        return Promise.all(
+            process.env.LIST_DISCORD_CHANNEL_ID.split(';').map(async (channel: string) => {
+                return await (await discordSetup(channel)).send(messages);
+            })
+        );
+
+    });
 }
 
 getEvents()
