@@ -106,10 +106,14 @@ async function getEvents() {
     ).then((messages) => {
         return Promise.all(
             process.env.LIST_DISCORD_CHANNEL_ID.split(';').map(async (channel: string) => {
-                return await (await discordSetup(channel)).send(messages);
+                const c = await discordSetup(channel);
+                return Promise.all(
+                    messages.map(async (message) => {
+                        return await c.send(message)
+                    })
+                );
             })
         );
-
     });
 }
 
